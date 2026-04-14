@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -6,14 +6,14 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class SchedulerService {
-  private apiUrl = 'https://horarios-backend-58w8.onrender.com/scheduler'; // Ajusta según tu backend
+  private apiUrl = 'http://localhost:3000/scheduler'; // Ajusta segÃºn tu backend
   private cacheKey = 'horariosCache';
 
 
   async getHorarios(): Promise<any[]> {
     const cached = localStorage.getItem(this.cacheKey);
     if (cached) {
-      console.log('🗃️ Cargando horarios desde cache');
+      console.log('ðŸ—ƒï¸ Cargando horarios desde cache');
       return JSON.parse(cached);
     }
 
@@ -33,3 +33,4 @@ export class SchedulerService {
     localStorage.removeItem(this.cacheKey);
   }
 }
+

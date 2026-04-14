@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 export interface salonesData {
   id: string;
   nombre: string;
-  division: string;
+  edificio?: string;
 }
 
 @Component({
@@ -21,12 +21,14 @@ export class SalonesComponent {
 
 
   salones: salonesData[] = [];
-  nuevoSalon: salonesData = { id: '', nombre: '', division: '' };
+  nuevoSalon: salonesData = { id: '', nombre: '', edificio: '' };
   editandoId: string | null = null;
+  toastVisible = false;
+  toastMessage = '';
+  toastType: 'success' | 'error' | 'warning' = 'success';
 
   ngOnInit() {
     const usuarioData = localStorage.getItem('userData');
-    const token = localStorage.getItem('token') || '';
     if (usuarioData) {
       const { full_name, metadata: { division, turno } } = JSON.parse(usuarioData);
       this.usuarioNombre = full_name || 'Usuario';
@@ -39,10 +41,31 @@ export class SalonesComponent {
     this.cargarSalones();
   }
 
+  private getAuthHeaders(includeContentType = false): HeadersInit {
+    const token = localStorage.getItem('token') || '';
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`
+    };
+
+    if (includeContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return headers;
+  }
+
+  private showToast(message: string, type: 'success' | 'error' | 'warning' = 'success') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.toastVisible = true;
+    setTimeout(() => {
+      this.toastVisible = false;
+    }, 2600);
+  }
+
   async cargarSalones() {
     // Intentar cargar desde localStorage primero
     const cache = localStorage.getItem('salonesCache');
-    const token = localStorage.getItem('token') || '';
     if (cache) {
       try {
         const cacheData = JSON.parse(cache);
@@ -51,10 +74,8 @@ export class SalonesComponent {
     }
 
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/salones', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch('http://localhost:3000/salones', {
+        headers: this.getAuthHeaders()
       });
       if (!res.ok) throw new Error('Error al obtener salones');
       const data = await res.json();
@@ -62,7 +83,7 @@ export class SalonesComponent {
       const salonesList = Array.isArray(data) ? data.map((s, idx) => ({
         id: s.id || idx,
         nombre: s.nombre,
-        division: s.division
+        edificio: s.edificio ?? s?.data?.edificio ?? ''
       })) : [];
       // Solo actualiza si hay cambios
       if (JSON.stringify(salonesList) !== localStorage.getItem('salonesCache')) {
@@ -70,51 +91,70 @@ export class SalonesComponent {
         localStorage.setItem('salonesCache', JSON.stringify(salonesList));
       }
     } catch (err) {
-      alert('No se pudo cargar la lista de salones: ' + err);
+      this.showToast('No se pudo cargar la lista de salones', 'error');
     }
   }
 
   async agregarSalon() {
-    if (!this.nuevoSalon.nombre.trim()) return;
+    if (!this.nuevoSalon.nombre.trim()) {
+      this.showToast('Debes capturar el nombre del salón', 'warning');
+      return;
+    }
+
+    const duplicated = this.salones.some((s) =>
+      s.nombre.trim().toLowerCase() === this.nuevoSalon.nombre.trim().toLowerCase()
+      && (s.edificio || '').trim().toLowerCase() === (this.nuevoSalon.edificio || '').trim().toLowerCase()
+    );
+
+    if (duplicated) {
+      this.showToast('Ya existe un salón con el mismo nombre y edificio', 'warning');
+      return;
+    }
+
     const body = {
       nombre: this.nuevoSalon.nombre,
-      division: this.nuevoSalon.division
+      data: {
+        edificio: (this.nuevoSalon.edificio || '').trim()
+      }
     };
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/salones', {
+      const res = await fetch('http://localhost:3000/salones', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAuthHeaders(true),
         body: JSON.stringify(body)
       });
-      if (!res.ok) throw new Error('Error al crear el salón');
+      if (!res.ok) throw new Error('Error al crear el salÃ³n');
       const data = await res.json();
 
       if (data.error) {
-        alert(data.error);
+        this.showToast(data.error, 'warning');
         return;
       }
       this.salones.push({
         id: data.id || Date.now(),
         nombre: data.nombre,
-        division: data.division
+        edificio: data.edificio ?? data?.data?.edificio ?? (this.nuevoSalon.edificio || '').trim()
       });
-      this.nuevoSalon = { id: '', nombre: '', division: '' };
+      this.nuevoSalon = { id: '', nombre: '', edificio: '' };
+      this.showToast('Salón creado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo crear el salón: ' + err);
+      this.showToast('No se pudo crear el salón', 'error');
     }
   }
 
   async eliminarSalon(id: string) {
-    const confirmacion = confirm('¿Estás seguro de que deseas eliminar este salón?');
+    const confirmacion = confirm('Â¿EstÃ¡s seguro de que deseas eliminar este salÃ³n?');
     if (!confirmacion) return;
     try {
-      const res = await fetch(`https://horarios-backend-58w8.onrender.com/salones/${id}`, {
-        method: 'DELETE'
+      const res = await fetch(`http://localhost:3000/salones/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
       });
-      if (!res.ok) throw new Error('Error al eliminar el salón');
+      if (!res.ok) throw new Error('Error al eliminar el salÃ³n');
       this.salones = this.salones.filter(s => s.id !== id);
+      this.showToast('Salón eliminado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo eliminar el salón: ' + err);
+      this.showToast('No se pudo eliminar el salón', 'error');
     }
   }
 
@@ -124,34 +164,54 @@ export class SalonesComponent {
   }
 
   async guardarEdicion() {
-    if (!this.nuevoSalon.nombre.trim()) return;
+    if (!this.nuevoSalon.nombre.trim()) {
+      this.showToast('Debes capturar el nombre del salón', 'warning');
+      return;
+    }
     if (!this.editandoId) return;
+
+    const duplicated = this.salones.some((s) =>
+      s.id !== this.editandoId
+      && s.nombre.trim().toLowerCase() === this.nuevoSalon.nombre.trim().toLowerCase()
+      && (s.edificio || '').trim().toLowerCase() === (this.nuevoSalon.edificio || '').trim().toLowerCase()
+    );
+
+    if (duplicated) {
+      this.showToast('Ya existe un salón con el mismo nombre y edificio', 'warning');
+      return;
+    }
+
     const body: any = {
-      nombre: this.nuevoSalon.nombre
+      nombre: this.nuevoSalon.nombre,
+      data: {
+        edificio: (this.nuevoSalon.edificio || '').trim()
+      }
     };
     try {
-      const res = await fetch(`https://horarios-backend-58w8.onrender.com/salones/${this.editandoId}`, {
+      const res = await fetch(`http://localhost:3000/salones/${this.editandoId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAuthHeaders(true),
         body: JSON.stringify(body)
       });
-      if (!res.ok) throw new Error('Error al editar el salón');
+      if (!res.ok) throw new Error('Error al editar el salÃ³n');
       const data = await res.json();
       this.salones = this.salones.map(s => s.id === this.editandoId ? {
         id: this.editandoId!,
         nombre: body.nombre,
-        division: this.nuevoSalon.division
+        edificio: body.data.edificio
       } : s);
-      this.nuevoSalon = { id: '', nombre: '', division: '' };
+      this.nuevoSalon = { id: '', nombre: '', edificio: '' };
       this.editandoId = null;
+      this.showToast('Salón editado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo editar el salón: ' + err);
+      this.showToast('No se pudo editar el salón', 'error');
     }
   }
 
   cancelarEdicion() {
-    this.nuevoSalon = { id: '', nombre: '', division: '' };
+    this.nuevoSalon = { id: '', nombre: '', edificio: '' };
     this.editandoId = null;
   }
 }
+
 

@@ -23,13 +23,17 @@
         </div>
         <div class="notice-content">
             <h3>Aviso importante</h3>
-            <p>Se generarán horarios para <strong>{{ usuarioCarrera }}</strong> basados en los salones del cuatrimestre
-                7. Este proceso puede tardar unos segundos.</p>
+            <p>Se generarán horarios para el <strong>{{ usuarioTurno }}</strong>, basados en los salones y grupos configurados. Este proceso puede tardar unos segundos.</p>
         </div>
     </div>
 
     <div class="controls-card">
         <div class="actions-wrapper">
+            <div class="input-group">
+                <label for="gradoScheduler">Grado (opcional)</label>
+                <input id="gradoScheduler" type="number" min="1" [(ngModel)]="selectedGrado" name="selectedGrado"
+                    placeholder="Ej. 1" class="input-grupo" />
+            </div>
             <button (click)="generateSchedule()" [disabled]="loading" class="btn-generate" [class.loading]="loading">
                 <span *ngIf="!loading">Generar Horarios</span>
                 <span *ngIf="loading">Generando...</span>

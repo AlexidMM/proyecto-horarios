@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule, Time } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -28,7 +28,7 @@ export interface bloques {
   styleUrl: './psicologos.scss'
 })
 export class Psicologos {
-  private API_DEPLOY = 'https://horarios-backend-58w8.onrender.com/psicologos';
+  private API_DEPLOY = 'http://localhost:3000/psicologos';
   private API_LOCAL = 'http://localhost:3000/psicologos';
 
   psicologos: PsicologoData[] = [];
@@ -36,10 +36,10 @@ export class Psicologos {
  dias: string[] = [
   'Lunes',
   'Martes',
-  'Miércoles',
+  'MiÃ©rcoles',
   'Jueves',
   'Viernes',
-  'Sábado'
+  'SÃ¡bado'
 ];
 
 bloques = [
@@ -85,7 +85,7 @@ bloques = [
   async cargarPsicologos() {
        try {
       const res = await fetch(this.API_LOCAL);
-      if (!res.ok) throw new Error('Error al obtener psicólogos');
+      if (!res.ok) throw new Error('Error al obtener psicÃ³logos');
       const data = await res.json();
       const newJson = JSON.stringify(data);
       if (newJson === this.lastPsicologosJson) {
@@ -96,7 +96,7 @@ bloques = [
       this.lastPsicologosJson = newJson;
       localStorage.setItem('psicologosCache', newJson);
     } catch (err) {
-      alert('No se pudo cargar la lista de psicólogos: ' + err);
+      alert('No se pudo cargar la lista de psicÃ³logos: ' + err);
     }
   }
 
@@ -111,17 +111,17 @@ bloques = [
       return;
     }
 
-    // 🔥 2️⃣ Filtrar bloques válidos
+    // ðŸ”¥ 2ï¸âƒ£ Filtrar bloques vÃ¡lidos
     const bloquesValidos = this.bloques.filter(
       b => b.dias.length > 0 && b.hora_inicio && b.hora_fin
     );
 
     if (bloquesValidos.length === 0) {
-      alert('Todos los bloques están vacíos o incompletos');
+      alert('Todos los bloques estÃ¡n vacÃ­os o incompletos');
       return;
     }
 
-    // 🔥 3️⃣ Crear payload limpio
+    // ðŸ”¥ 3ï¸âƒ£ Crear payload limpio
     const payload = {
       ...this.nuevoPsicologo,
       disponibilidad: bloquesValidos
@@ -135,7 +135,7 @@ bloques = [
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Error al crear psicólogo');
+      if (!res.ok) throw new Error('Error al crear psicÃ³logo');
       const data = await res.json();
       this.psicologos.push(data);
       this.nuevoPsicologo = {
@@ -146,7 +146,7 @@ bloques = [
         area_id:1
       };
     } catch (err) {
-      alert('Error al crear psicólogo: ' + err);
+      alert('Error al crear psicÃ³logo: ' + err);
     }
   }
 
@@ -164,3 +164,4 @@ bloques = [
 
   async eliminarPsicologo(id: string) {}
 }
+

@@ -21,9 +21,9 @@
                         name="nombre" required class="input-salon" />
                 </div>
                 <div class="input-group">
-                    <label for="divisionSalon">División</label>
-                    <input id="divisionSalon" type="text" placeholder="División" [(ngModel)]="nuevoSalon.division"
-                        name="division" required class="input-salon" />
+                    <label for="edificioSalon">Edificio</label>
+                    <input id="edificioSalon" type="text" placeholder="Ej. Edificio A" [(ngModel)]="nuevoSalon.edificio"
+                        name="edificio" class="input-salon" />
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-guardar">
@@ -43,7 +43,7 @@
                 <tr>
                     <th class="th-id">#</th>
                     <th>Nombre</th>
-                    <th>División</th>
+                    <th>Edificio</th>
                     <th class="th-actions">Acciones</th>
                 </tr>
             </thead>
@@ -51,7 +51,7 @@
                 <tr *ngFor="let salon of salones; let i = index">
                     <td class="td-id">{{ i + 1 }}</td>
                     <td class="td-nombre">{{ salon.nombre }}</td>
-                    <td>{{ salon.division }}</td>
+                    <td>{{ salon.edificio || 'Sin edificio' }}</td>
                     <td class="td-actions">
                         <button class="btn-icon btn-editar" (click)="editarSalon(salon)" title="Editar">
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,5 +74,9 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <div *ngIf="toastVisible" class="app-toast" [ngClass]="toastType">
+        {{ toastMessage }}
     </div>
 </div>

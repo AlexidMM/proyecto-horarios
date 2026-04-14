@@ -25,14 +25,14 @@
                     <input id="apellidosProfesor" type="text" placeholder="Ej. Pérez"
                         [(ngModel)]="nuevoProfesor.apellidos" name="apellidos" required class="input-profesor" />
                 </div>
-                <!-- <div class ="input-group">
+                <div class="input-group">
                     <label for="horaEmpezarProfesor">Hora que empieza a trabajar</label>
                     <input id="horaEmpezarProfesor" type="time" [(ngModel)]="nuevoProfesor.hora_empezar" name="hora_empezar" required class="input-profesor" />
                 </div>
-                    <div class ="input-group">
-                        <label for="horaTerminarProfesor">Hora que termina de trabajar</label>
-                        <input id="horaTerminarProfesor" type="time" [(ngModel)]="nuevoProfesor.hora_terminar" name="hora_terminar" required class="input-profesor" />
-                    </div> -->
+                <div class="input-group">
+                    <label for="horaTerminarProfesor">Hora que termina de trabajar</label>
+                    <input id="horaTerminarProfesor" type="time" [(ngModel)]="nuevoProfesor.hora_terminar" name="hora_terminar" required class="input-profesor" />
+                </div>
 
                 <div class="input-group full-width">
                     <label>Materias que puede impartir</label>
@@ -59,6 +59,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Apellidos</th>
+                    <th>Jornada</th>
                     <th>Materias</th>
                     <th class="th-actions">Acciones</th>
                 </tr>
@@ -67,6 +68,7 @@
                 <tr *ngFor="let profesor of profesores">
                     <td class="td-nombre">{{ profesor.nombre }}</td>
                     <td>{{ profesor.apellidos }}</td>
+                    <td>{{ profesor.hora_empezar || '--:--' }} - {{ profesor.hora_terminar || '--:--' }}</td>
                     <td>
                         <div class="materias-list">
                             <span *ngIf="profesor.materias && profesor.materias.length; else sinMaterias">
@@ -94,7 +96,7 @@
                     </td>
                 </tr>
                 <tr *ngIf="profesores.length === 0">
-                    <td colspan="4" class="empty-state">
+                    <td colspan="5" class="empty-state">
                         No hay profesores registrados. ¡Agrega uno nuevo arriba!
                     </td>
                 </tr>

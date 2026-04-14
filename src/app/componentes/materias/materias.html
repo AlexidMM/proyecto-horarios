@@ -22,15 +22,6 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="carreraMateria">Carrera</label>
-                    <select id="carreraMateria" [(ngModel)]="nuevaMateria.carrera" name="carrera" required
-                        class="input-materia">
-                        <option value="" disabled selected>Selecciona una carrera</option>
-                        <option *ngFor="let carrera of carreras" [value]="carrera">{{ carrera }}</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
                     <label for="salonMateria">Salón</label>
                     <select id="salonMateria" [(ngModel)]="nuevaMateria.salones" name="salones" required
                         class="input-materia">
@@ -63,7 +54,6 @@
                 <tr>
                     <th class="th-id">#</th>
                     <th>Nombre</th>
-                    <th>Carrera</th>
                     <th>Horas/Semana</th>
                     <th>Salones</th>
                     <th class="th-actions">Acciones</th>
@@ -73,9 +63,8 @@
                 <tr *ngFor="let materia of materias; let i = index">
                     <td class="td-id">{{ i + 1 }}</td>
                     <td class="td-nombre">{{ materia.nombre }}</td>
-                    <td>{{ materia.carrera }}</td>
                     <td>{{ materia.horas_semana }}</td>
-                    <td>{{ materia.salones }}</td>
+                    <td>{{ formatSalones(materia.salones) }}</td>
                     <td class="td-actions">
                         <button class="btn-icon btn-editar" (click)="editarMateria(materia)" title="Editar">
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,5 +87,9 @@
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <div *ngIf="toastVisible" class="app-toast" [ngClass]="toastType">
+        {{ toastMessage }}
     </div>
 </div>

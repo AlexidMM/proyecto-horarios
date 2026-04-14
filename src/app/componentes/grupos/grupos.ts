@@ -1,26 +1,17 @@
-
+﻿
 import { CommonModule } from '@angular/common';
 import { Component, } from '@angular/core';
 import { FormsModule, } from '@angular/forms';
 import { ProfesorData } from '../profesores/profesores';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { Carreras } from '../carreras/carreras';
 import { RouterModule } from '@angular/router';
 
 
 export interface Grupo {
   id: string;
   nombre: string;
-  division: string;
   grado: number;
-  carrera: string;
   data?: object;
-}
-interface Carrera {
-  id: string;
-  nombre: string;
-  grado: number;
-  division: string;
 }
 
 
@@ -44,30 +35,35 @@ interface Tutor {
 
 export class GruposComponent {
   grupos: Grupo[] = [];
-  carreras: Carrera[] = [];
   grupoEditando: Grupo | null = null;
-  nuevoGrupo: Grupo = { id: '', nombre: '', division: '', grado: 1, carrera: '', data: {} };
+  nuevoGrupo: Grupo = { id: '', nombre: '', grado: 1, data: {} };
   tutores: Tutor[] = [];
   tutoresOpciones: string[] = [];
+  toastVisible = false;
+  toastMessage = '';
+  toastType: 'success' | 'error' | 'warning' = 'success';
   ngOnInit() {
     this.cargarGrupos();
-    this.cargarCarreras();
   }
 
-  async cargarCarreras() {
-    try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/carreras');
-      if (!res.ok) throw new Error('Error al obtener carreras');
-      const data = await res.json();
-      this.carreras = Array.isArray(data) ? data.map((c: any) => ({
-        id: c.id,
-        nombre: c.nombre,
-        grado: c.grado,
-        division: c.division
-      })) : [];
-    } catch (err) {
-      alert('No se pudo cargar la lista de carreras: ' + err);
-    }
+  private showToast(message: string, type: 'success' | 'error' | 'warning' = 'success') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.toastVisible = true;
+    setTimeout(() => {
+      this.toastVisible = false;
+    }, 2600);
+  }
+
+  private normalizeGroupName(value: string) {
+    return value.trim().toLowerCase();
+  }
+
+  private isNombreDuplicado(nombre: string, excludeId?: string): boolean {
+    const normalized = this.normalizeGroupName(nombre);
+    return this.grupos.some((g) =>
+      g.id !== excludeId && this.normalizeGroupName(g.nombre) === normalized
+    );
   }
 
 
@@ -80,7 +76,7 @@ export class GruposComponent {
 
   async cargarTutores(): Promise<void> {
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/profesores/tutores');
+      const res = await fetch('http://localhost:3000/profesores/tutores');
       if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
       const data = await res.json();
 
@@ -98,37 +94,35 @@ export class GruposComponent {
 
     } catch (error) {
       console.error('Error cargando tutores:', error);
-      alert('No se pudo cargar la lista de tutores.');
+      this.showToast('No se pudo cargar la lista de tutores', 'error');
     }
   }
 
   async cargarGrupos() {
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/grupos');
+      const res = await fetch('http://localhost:3000/grupos');
       if (!res.ok) throw new Error('Error al obtener grupos');
       const data = await res.json();
       this.grupos = Array.isArray(data)
         ? data.map((g: any) => ({
           id: g.id,
           nombre: g.nombre,
-          division: g.division,
           grado: g.grado,
-          carrera: g.carrera,
           data: g.data || {}
         }))
         : [];
     } catch (err) {
-      alert('No se pudo cargar la lista de grupos: ' + err);
+      this.showToast('No se pudo cargar la lista de grupos', 'error');
     }
   }
 
   async cargarGrupoPorId(id: string) {
     try {
-      const res = await fetch(`https://horarios-backend-58w8.onrender.com/grupos/${id}`);
+      const res = await fetch(`http://localhost:3000/grupos/${id}`);
       if (!res.ok) throw new Error('Error al obtener grupo');
       return await res.json();
     } catch (err) {
-      alert('No se pudo cargar el grupo: ' + err);
+      this.showToast('No se pudo cargar el grupo', 'error');
       return null;
     }
   }
@@ -136,19 +130,22 @@ export class GruposComponent {
 
   // Agregar un nuevo grupo
   async agregarGrupo() {
-    if (!this.nuevoGrupo.nombre || !this.nuevoGrupo.division || !this.nuevoGrupo.carrera || !this.nuevoGrupo.grado) {
-      alert('Debes completar todos los campos obligatorios.');
+    if (!this.nuevoGrupo.nombre || !this.nuevoGrupo.grado) {
+      this.showToast('Debes completar todos los campos obligatorios', 'warning');
+      return;
+    }
+
+    if (this.isNombreDuplicado(this.nuevoGrupo.nombre)) {
+      this.showToast('Ya existe un grupo con ese nombre', 'warning');
       return;
     }
     const body = {
       nombre: this.nuevoGrupo.nombre,
-      division: this.nuevoGrupo.division,
       grado: this.nuevoGrupo.grado,
-      carrera: this.nuevoGrupo.carrera,
       data: this.nuevoGrupo.data || {}
     };
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/grupos', {
+      const res = await fetch('http://localhost:3000/grupos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -158,18 +155,17 @@ export class GruposComponent {
       this.grupos.push({
         id: data.id || crypto.randomUUID(),
         nombre: data.nombre,
-        division: data.division,
         grado: data.grado,
-        carrera: data.carrera,
         data: data.data || {}
       });
-      this.nuevoGrupo = { id: '', nombre: '', division: '', grado: 1, carrera: '', data: {} };
+      this.nuevoGrupo = { id: '', nombre: '', grado: 1, data: {} };
+      this.showToast('Grupo creado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo crear el grupo: ' + err);
+      this.showToast('No se pudo crear el grupo', 'error');
     }
   }
 
-  // Inicia la edición de un grupo
+  // Inicia la ediciÃ³n de un grupo
   editarGrupo(grupo: Grupo): void {
     this.grupoEditando = { ...grupo };
     this.nuevoGrupo = { ...grupo }; // Copia los datos al formulario
@@ -177,20 +173,24 @@ export class GruposComponent {
 
   // Guardar los cambios de un grupo editado
   async guardarEdicion() {
-    if (!this.nuevoGrupo.nombre || !this.nuevoGrupo.division || !this.nuevoGrupo.carrera || !this.nuevoGrupo.grado) {
-      alert('Debes completar todos los campos obligatorios.');
+    if (!this.nuevoGrupo.nombre || !this.nuevoGrupo.grado) {
+      this.showToast('Debes completar todos los campos obligatorios', 'warning');
       return;
     }
     if (!this.grupoEditando) return;
+
+    if (this.isNombreDuplicado(this.nuevoGrupo.nombre, this.grupoEditando.id)) {
+      this.showToast('Ya existe un grupo con ese nombre', 'warning');
+      return;
+    }
+
     const body = {
       nombre: this.nuevoGrupo.nombre,
-      division: this.nuevoGrupo.division,
       grado: this.nuevoGrupo.grado,
-      carrera: this.nuevoGrupo.carrera,
       data: this.nuevoGrupo.data || {}
     };
     try {
-      const res = await fetch(`https://horarios-backend-58w8.onrender.com/grupos/${this.grupoEditando.id}`, {
+      const res = await fetch(`http://localhost:3000/grupos/${this.grupoEditando.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -202,35 +202,39 @@ export class GruposComponent {
         this.grupos[index] = {
           id: this.grupoEditando.id,
           nombre: body.nombre,
-          division: body.division,
           grado: body.grado,
-          carrera: body.carrera,
           data: body.data
         };
       }
       this.grupoEditando = null;
-      this.nuevoGrupo = { id: '', nombre: '', division: '', grado: 1, carrera: '', data: {} };
+      this.nuevoGrupo = { id: '', nombre: '', grado: 1, data: {} };
+      this.showToast('Grupo editado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo editar el grupo: ' + err);
+      this.showToast('No se pudo editar el grupo', 'error');
     }
   }
 
-  // Cancelar edición
+  // Cancelar ediciÃ³n
   cancelarEdicion(): void {
     this.grupoEditando = null;
-    this.nuevoGrupo = { id: '', nombre: '', division: '', grado: 1, carrera: '', data: {} };
+    this.nuevoGrupo = { id: '', nombre: '', grado: 1, data: {} };
   }
 
   // Eliminar un grupo
   async eliminarGrupo(id: string) {
+    const confirmacion = confirm('¿Estás seguro de eliminar este grupo?');
+    if (!confirmacion) return;
+
     try {
-      const res = await fetch(`https://horarios-backend-58w8.onrender.com/grupos/${id}`, {
+      const res = await fetch(`http://localhost:3000/grupos/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Error al eliminar el grupo');
       this.grupos = this.grupos.filter(g => g.id !== id);
+      this.showToast('Grupo eliminado correctamente', 'success');
     } catch (err) {
-      alert('No se pudo eliminar el grupo: ' + err);
+      this.showToast('No se pudo eliminar el grupo', 'error');
     }
   }
 }
+

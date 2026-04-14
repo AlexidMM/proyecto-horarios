@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -18,7 +18,7 @@ export class BienvenidaComponent {
 
   async iniciarSesion() {
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/users/login-admin', {
+      const res = await fetch('http://localhost:3000/users/login-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -54,3 +54,4 @@ export class BienvenidaComponent {
   }
 
 }
+

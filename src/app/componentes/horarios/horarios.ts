@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import resultado from './resultado.json';
 import { OrderByStartPipe } from './orderPipe';
@@ -32,13 +32,12 @@ salones: salonesData[] = [];
 
  async cargarSalones() {
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/salones');
+      const res = await fetch('http://localhost:3000/salones');
       if (!res.ok) throw new Error('Error al obtener salones');
       const data = await res.json();
       this.salones = Array.isArray(data) ? data.map((s, idx) => ({
         id: s.id || idx,
-        nombre: s.nombre_salon,
-        division: s.division
+        nombre: s.nombre
         
       })) : [];
     } catch (err) {
@@ -52,10 +51,10 @@ salones: salonesData[] = [];
     const dias: { [key: string]: string } = {
       Lun: 'Lunes',
       Mar: 'Martes',
-      Mie: 'Miércoles',
+      Mie: 'MiÃ©rcoles',
       Jue: 'Jueves',
       Vie: 'Viernes',
-      Sab: 'Sábado'
+      Sab: 'SÃ¡bado'
     };
     const match = start.match(/^([A-Za-z]+)(\d{1,2})$/);
     if (match) {
@@ -66,11 +65,11 @@ salones: salonesData[] = [];
     return start;
   }
 
-  diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+  diasSemana = ['Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes'];
 horas = [ '17:00', '18:00', '19:00', '20:00', '21:00' ];
 
 getClase(clases: any[], dia: string, hora: string) {
-  // Busca la clase que corresponde al día y hora
+  // Busca la clase que corresponde al dÃ­a y hora
   return clases.find(c => this.formatStart(c.start).startsWith(dia) && this.formatStart(c.start).includes(hora));
 }
 }

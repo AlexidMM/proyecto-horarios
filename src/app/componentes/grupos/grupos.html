@@ -21,22 +21,9 @@
                         placeholder="Ej. A" required class="input-grupo" />
                 </div>
                 <div class="input-group">
-                    <label for="divisionGrupo">División</label>
-                    <input id="divisionGrupo" type="text" [(ngModel)]="nuevoGrupo.division" name="division"
-                        placeholder="Ej. TIC" required class="input-grupo" />
-                </div>
-                <div class="input-group">
-                    <label for="gradoGrupo">Grado/Cuatrimestre</label>
+                    <label for="gradoGrupo">Grado</label>
                     <input id="gradoGrupo" type="number" [(ngModel)]="nuevoGrupo.grado" name="grado" placeholder="Ej. 7"
                         min="1" max="12" required class="input-grupo" />
-                </div>
-                <div class="input-group">
-                    <label for="carreraGrupo">Carrera</label>
-                    <select id="carreraGrupo" [(ngModel)]="nuevoGrupo.carrera" name="carrera" required
-                        class="input-grupo">
-                        <option value="" disabled selected>Selecciona una carrera</option>
-                        <option *ngFor="let carrera of carreras" [value]="carrera.nombre">{{ carrera.nombre }}</option>
-                    </select>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-guardar">
@@ -56,9 +43,7 @@
                 <tr>
                     <th class="th-id">#</th>
                     <th>Nombre</th>
-                    <th>División</th>
                     <th>Grado</th>
-                    <th>Carrera</th>
                     <th class="th-actions">Acciones</th>
                 </tr>
             </thead>
@@ -66,9 +51,7 @@
                 <tr *ngFor="let grupo of grupos; let i = index">
                     <td class="td-id">{{ i + 1 }}</td>
                     <td class="td-nombre">{{ grupo.nombre }}</td>
-                    <td>{{ grupo.division }}</td>
                     <td>{{ grupo.grado }}</td>
-                    <td>{{ grupo.carrera }}</td>
                     <td class="td-actions">
                         <button class="btn-icon btn-editar" (click)="editarGrupo(grupo)" title="Editar">
                             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,11 +68,15 @@
                     </td>
                 </tr>
                 <tr *ngIf="grupos.length === 0">
-                    <td colspan="6" class="empty-state">
+                    <td colspan="4" class="empty-state">
                         No hay grupos registrados. ¡Agrega uno nuevo arriba!
                     </td>
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <div *ngIf="toastVisible" class="app-toast" [ngClass]="toastType">
+        {{ toastMessage }}
     </div>
 </div>

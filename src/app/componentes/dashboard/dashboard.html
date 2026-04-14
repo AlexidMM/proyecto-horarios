@@ -9,8 +9,8 @@
             </svg>
         </span>
         <div class="header-content">
-            <h1>Bienvenido JUCA {{ usuarioNombre }} al Generador de Horarios para {{ usuarioCarrera }}</h1>
-            <p>Organiza y visualiza los horarios de tu división de manera eficiente.</p>
+            <h1>Bienvenid@ {{ usuarioNombre }} al Generador de Horarios Escolares</h1>
+            <p>Turno actual: {{ usuarioTurno }}. Organiza y visualiza horarios de manera eficiente.</p>
         </div>
     </div>
 
@@ -18,11 +18,8 @@
         <h2>¿Cómo empezar?</h2>
         <ol class="steps-list">
             <li>
-                <a routerLink="/carreras" class="step-link">Carreras:</a> Añade las carreras de tu division.
-            </li>
-            <li>
                 <a routerLink="/salones" class="step-link">Gestión de Salones:</a> Añade todos los salones disponibles
-                en la división.
+                en la institución.
             </li>
             <li>
                 <a routerLink="/materias" class="step-link">Gestión de Materias:</a> Agrega todas las materias que
@@ -33,12 +30,11 @@
                 materias correspondientes.
             </li>
             <li>
-                <a routerLink="/grupos" class="step-link">Gestión de Grupos:</a> Crea los grupos correspondientes para
-                tu división.
+                <a routerLink="/grupos" class="step-link">Gestión de Grupos:</a> Crea los grupos correspondientes.
             </li>
             <li>
                 <a routerLink="/horarios/nuevo" class="step-link">Generar Horarios:</a> Selecciona los
-                grados/cuatrimestres y haz clic en <b>Generar Horario</b> para crear el horario automáticamente.
+                grados y haz clic en <b>Generar Horario</b> para crear el horario automáticamente.
             </li>
             <li>
                 <span class="step-highlight">Visualizar:</span> Visualiza o exporta los horarios generados en PDF.

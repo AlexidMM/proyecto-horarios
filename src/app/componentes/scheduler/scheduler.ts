@@ -1,4 +1,4 @@
-
+﻿
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -19,8 +19,9 @@ export class SchedulerComponent {
   loading = false;
   message = '';
   isSuccess = false;
+  selectedGrado: number | null = null;
   usuarioNombre: string = '';
-  usuarioCarrera: string = '';
+  usuarioTurno: string = '';
   groupedSchedules: Array<{ nombregrupo: string; data: any[] }> = [];
   diasSemana: string[] = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
   horas: string[] = ['17', '18', '19', '20', '21'];
@@ -28,7 +29,7 @@ export class SchedulerComponent {
   profesoresConHorarios: Array<{ nombre: string, clases: any[] }> = [];
 
   getClase(data: any[], dia: string, hora: string): any {
-    // Busca la clase cuyo campo start coincide con el día y la hora
+    // Busca la clase cuyo campo start coincide con el dÃ­a y la hora
     return data.find(clase => {
       if (typeof clase.start === 'string') {
         return clase.start.startsWith(dia) && clase.start.substring(3, 5) === hora;
@@ -50,20 +51,22 @@ export class SchedulerComponent {
   ngOnInit() {
     const usuarioData = localStorage.getItem('userData');
     if (usuarioData) {
-      const { full_name, metadata: { division, turno } } = JSON.parse(usuarioData);
+      const parsed = JSON.parse(usuarioData);
+      const full_name = parsed.full_name;
+      const turno = parsed?.metadata?.turno;
       this.usuarioNombre = full_name || 'Usuario';
-      this.usuarioCarrera = `${division || ''} - ${turno || ''}`;
+      this.usuarioTurno = turno || 'Sin turno';
 
     } else {
       this.usuarioNombre = 'Usuario';
-      this.usuarioCarrera = '';
+      this.usuarioTurno = '';
     }
     this.cargarHorariosCreados();
   }
 
   async cargarHorariosCreados() {
     try {
-      const res = await fetch('https://horarios-backend-58w8.onrender.com/scheduler/allschedules');
+      const res = await fetch('http://localhost:3000/scheduler/allschedules');
       if (!res.ok) throw new Error('Error al obtener horarios creados');
       const data = await res.json();
       console.log('Horarios creados:', data);
@@ -100,23 +103,35 @@ export class SchedulerComponent {
     this.message = '';
     this.isSuccess = false;
 
-    fetch('https://horarios-backend-58w8.onrender.com/scheduler/generate', {
+    const payload = this.selectedGrado ? { grado: this.selectedGrado } : {};
+
+    fetch('http://localhost:3000/scheduler/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+      body: JSON.stringify(payload)
     })
       .then(async res => {
         if (!res.ok) throw new Error('Error al generar los horarios');
         const response = await res.json();
+        const generation = response?.result ?? response;
+        const missingCount = Array.isArray(generation?.missingSubjects)
+          ? generation.missingSubjects.length
+          : 0;
         this.loading = false;
-        this.isSuccess = true;
-        this.message = '✅ Horarios generados correctamente.';
+        if (generation?.status === 'warning') {
+          this.isSuccess = false;
+          this.message = `⚠️ ${generation?.message || 'Se generó un horario parcial.'}${missingCount > 0 ? ` Materias con horas faltantes: ${missingCount}.` : ''}`;
+        } else {
+          this.isSuccess = true;
+          this.message = '✅ Horarios generados correctamente.';
+        }
+        await this.cargarHorariosCreados();
         console.log('Respuesta del backend:', response);
       })
       .catch(error => {
         this.loading = false;
         this.isSuccess = false;
-        this.message = '❌ Ocurrió un error al generar los horarios.';
+        this.message = 'âŒ OcurriÃ³ un error al generar los horarios.';
         console.error('Error:', error);
       });
   }
@@ -142,7 +157,7 @@ export class SchedulerComponent {
     doc.setFontSize(10);
     doc.text(`Sistema de Horarios`, 180, 13, { align: 'right' });
 
-    // Información del grupo
+    // InformaciÃ³n del grupo
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -162,7 +177,7 @@ export class SchedulerComponent {
           row.push([
             clase.subj,
             clase.prof || 'Sin profesor',
-            clase.room || 'Sin salón'
+            clase.room || 'Sin salÃ³n'
           ].filter(Boolean).join('\n'));
         } else {
           row.push('');
@@ -192,20 +207,20 @@ export class SchedulerComponent {
       },
     });
 
-    // Pie de página
+    // Pie de pÃ¡gina
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text('Documento generado automáticamente por el sistema de horarios escolar', 105, 290, { align: 'center' });
+      doc.text('Documento generado automÃ¡ticamente por el sistema de horarios escolar', 105, 290, { align: 'center' });
     }
 
     doc.save(`horario_${group.nombregrupo}.pdf`);
   }
 
 
-  // ...mantener el resto del código igual...
+  // ...mantener el resto del cÃ³digo igual...
 
   exportarPDFProfesor(prof: { nombre: string, clases: any[] }) {
     const doc = new jsPDF();
@@ -225,7 +240,7 @@ export class SchedulerComponent {
     doc.setFontSize(10);
     doc.text(`Sistema de Horarios`, 180, 13, { align: 'right' });
 
-    // Información del profesor
+    // InformaciÃ³n del profesor
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -288,15 +303,16 @@ export class SchedulerComponent {
       }
     });
 
-    // Pie de página
+    // Pie de pÃ¡gina
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text('Documento generado automáticamente por el sistema de horarios escolar', 105, 290, { align: 'center' });
+      doc.text('Documento generado automÃ¡ticamente por el sistema de horarios escolar', 105, 290, { align: 'center' });
     }
 
     doc.save(`horario_profesor_${prof.nombre}.pdf`);
   }
 }
+
