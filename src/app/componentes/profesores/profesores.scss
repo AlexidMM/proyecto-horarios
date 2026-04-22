@@ -218,6 +218,25 @@ $success: #27ae60;
   overflow: hidden;
 }
 
+.table-filters {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid $border;
+  background: $secondary;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  border: 1px solid $border;
+  color: color.adjust($text, $lightness: 10%);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
 .tabla-profesores {
   width: 100%;
   border-collapse: collapse;

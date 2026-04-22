@@ -20,6 +20,7 @@ interface UserRow {
 })
 export class UsersComponent {
   users: UserRow[] = [];
+  filtroUsers = '';
   nuevo = { id: '', email: '', passwordHash: '', fullName: '', role: 'user' };
   editandoId: string | null = null;
 
@@ -60,6 +61,18 @@ export class UsersComponent {
 
     this.cancelar();
     await this.cargar();
+  }
+
+  get usersFiltrados(): UserRow[] {
+    const term = this.filtroUsers.trim().toLowerCase();
+    if (!term) return this.users;
+    return this.users.filter((u) =>
+      `${u.email} ${u.full_name || ''} ${u.role || ''}`.toLowerCase().includes(term),
+    );
+  }
+
+  limpiarFiltros() {
+    this.filtroUsers = '';
   }
 
   editar(user: UserRow) {

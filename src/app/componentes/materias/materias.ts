@@ -24,6 +24,9 @@ export interface Materia {
 })
 export class Materias {
   materias: Materia[] = [];
+  filtroMaterias = '';
+  filtroGrado = 'all';
+  filtroDobleBloque = 'all';
   nuevaMateria: Materia = { id: '', nombre: '', grado: 1, horas_semana: 1, permitir_doble_bloque: false, data: {}, salones: [] };
   selectedSalones: string[] = [];
   editandoId: string | null = null;
@@ -97,6 +100,25 @@ export class Materias {
   formatSalones(value: unknown): string {
     const normalized = this.normalizeSalones(value);
     return normalized.length > 0 ? normalized.join(', ') : 'Sin salón';
+  }
+
+  get materiasFiltradas(): Materia[] {
+    const term = this.filtroMaterias.trim().toLowerCase();
+    return this.materias.filter((m) => {
+      const matchesSearch = !term || `${m.nombre} ${this.getGradoLabel(m.grado)} ${this.formatSalones(m.salones)}`
+        .toLowerCase().includes(term);
+      const matchesGrado = this.filtroGrado === 'all' || Number(m.grado) === Number(this.filtroGrado);
+      const matchesDoble = this.filtroDobleBloque === 'all'
+        || (this.filtroDobleBloque === 'si' && Boolean(m.permitir_doble_bloque))
+        || (this.filtroDobleBloque === 'no' && !Boolean(m.permitir_doble_bloque));
+      return matchesSearch && matchesGrado && matchesDoble;
+    });
+  }
+
+  limpiarFiltros() {
+    this.filtroMaterias = '';
+    this.filtroGrado = 'all';
+    this.filtroDobleBloque = 'all';
   }
 
   toggleSalonSelection(salon: string, checked: boolean) {

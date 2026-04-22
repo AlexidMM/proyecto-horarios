@@ -43,6 +43,16 @@
     </div>
 
     <div class="card-table">
+        <div class="table-filters">
+            <select [(ngModel)]="filtroGrado" name="filtroGrado" class="input-grupo">
+                <option value="all">Grados: Todos</option>
+                <option value="1">1°</option>
+                <option value="2">2°</option>
+                <option value="3">3°</option>
+            </select>
+            <input type="text" [(ngModel)]="filtroGrupos" name="filtroGrupos" placeholder="Buscar grupo..." class="input-grupo" />
+            <button type="button" class="btn-clear-filters" (click)="limpiarFiltros()">Borrar filtros</button>
+        </div>
         <table class="tabla-grupos">
             <thead>
                 <tr>
@@ -55,7 +65,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let grupo of grupos; let i = index">
+                <tr *ngFor="let grupo of gruposFiltrados; let i = index">
                     <td class="td-id">{{ i + 1 }}</td>
                     <td class="td-nombre">{{ grupo.nombre }}</td>
                     <td>{{ grupo.grado }}</td>
@@ -76,7 +86,7 @@
                         </button>
                     </td>
                 </tr>
-                <tr *ngIf="grupos.length === 0">
+                <tr *ngIf="gruposFiltrados.length === 0">
                     <td colspan="6" class="empty-state">
                         No hay grupos registrados. ¡Agrega uno nuevo arriba!
                     </td>

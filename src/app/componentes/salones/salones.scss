@@ -185,6 +185,26 @@ $danger-hover: #c62828;
 	overflow: hidden;
 }
 
+.table-filters {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid $border;
+  background: $secondary;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  border: 1px solid $border;
+  color: color.adjust($text, $lightness: 10%);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .tabla-salones {
 	width: 100%;
 	border-collapse: collapse;

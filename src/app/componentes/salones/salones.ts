@@ -23,6 +23,9 @@ export class SalonesComponent {
 
 
   salones: salonesData[] = [];
+  filtroSalones = '';
+  filtroEdificio = 'all';
+  filtroCapacidad = 'all';
   edificios: Array<{ id: string; nombre: string }> = [];
   nuevoSalon: salonesData = { id: '', nombre: '', edificio_id: '', capacidad: 35 };
   editandoId: string | null = null;
@@ -81,6 +84,32 @@ export class SalonesComponent {
     setTimeout(() => {
       this.toastVisible = false;
     }, 2600);
+  }
+
+  get salonesFiltrados(): salonesData[] {
+    const term = this.filtroSalones.trim().toLowerCase();
+    return this.salones.filter((s) => {
+      const matchesSearch = !term || 
+      `${s.nombre} ${s.edificioNombre || ''} ${s.capacidad || ''}`
+        .toLowerCase()
+        .includes(term);
+      const matchesEdificio = this.filtroEdificio === 'all' || s.edificio_id === this.filtroEdificio;
+      const matchesCapacidad = this.filtroCapacidad === 'all' || Number(s.capacidad || 0) === Number(this.filtroCapacidad);
+      return matchesSearch && matchesEdificio && matchesCapacidad;
+    });
+  }
+
+  get capacidadesDisponibles(): number[] {
+    const capSet = new Set<number>();
+    for (let i = 20; i <= 60; i += 1) capSet.add(i);
+    this.salones.forEach((s) => capSet.add(Number(s.capacidad || 0)));
+    return Array.from(capSet).filter((n) => n >= 20).sort((a, b) => a - b);
+  }
+
+  limpiarFiltros() {
+    this.filtroSalones = '';
+    this.filtroEdificio = 'all';
+    this.filtroCapacidad = 'all';
   }
 
   async cargarSalones() {

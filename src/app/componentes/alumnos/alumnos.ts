@@ -29,6 +29,8 @@ interface Alumno {
 })
 export class AlumnosComponent {
   alumnos: Alumno[] = [];
+  filtroAlumnos = '';
+  filtroGrupo = 'all';
   grupos: GrupoOption[] = [];
   nuevo: Alumno = { id: '', nombre: '', direccion: '', telefono_contacto: '', email_contacto: '', grupo_id: '' };
   editandoId: string | null = null;
@@ -76,6 +78,22 @@ export class AlumnosComponent {
   getGrupoOcupacion(grupo: GrupoOption): string {
     const actuales = grupo?._count?.alumnos || 0;
     return `${grupo.nombre} (${actuales}/${grupo.limite_alumnos})`;
+  }
+
+  get alumnosFiltrados(): Alumno[] {
+    const term = this.filtroAlumnos.trim().toLowerCase();
+    return this.alumnos.filter((a) => {
+      const matchesSearch = !term || 
+      `${a.nombre} ${a.direccion || ''} ${a.telefono_contacto || ''} ${a.email_contacto || ''} ${this.getGrupoLabel(a.grupo_id)}`
+        .toLowerCase().includes(term);
+      const matchesGrupo = this.filtroGrupo === 'all' || a.grupo_id === this.filtroGrupo;
+      return matchesSearch && matchesGrupo;
+    });
+  }
+
+  limpiarFiltros() {
+    this.filtroAlumnos = '';
+    this.filtroGrupo = 'all';
   }
 
   async guardar() {

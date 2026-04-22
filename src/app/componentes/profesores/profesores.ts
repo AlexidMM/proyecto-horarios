@@ -27,6 +27,7 @@ export interface ProfesorData {
 })
 export class ProfesoresComponent {
   profesores: ProfesorData[] = [];
+  filtroProfesores = '';
   materias: Materia[] = [];
   materiasOpciones: string[] = [];
   toastVisible = false;
@@ -133,6 +134,20 @@ export class ProfesoresComponent {
   private toHourString(value?: number): string {
     if (value === null || value === undefined || Number.isNaN(value)) return '';
     return `${String(value).padStart(2, '0')}:00`;
+  }
+
+  get profesoresFiltrados(): ProfesorData[] {
+    const term = this.filtroProfesores.trim().toLowerCase();
+    if (!term) return this.profesores;
+    return this.profesores.filter((p) =>
+      `${p.nombre} ${p.apellidos} ${(p.materias || []).join(' ')}`
+        .toLowerCase()
+        .includes(term),
+    );
+  }
+
+  limpiarFiltros() {
+    this.filtroProfesores = '';
   }
 
   private buildProfesorBody() {

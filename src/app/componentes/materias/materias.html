@@ -31,6 +31,20 @@
                 </div>
 
                 <div class="input-group">
+                    <label for="horasSemana">Horas/Semana</label>
+                    <input id="horasSemana" type="number" [(ngModel)]="nuevaMateria.horas_semana" name="horas_semana"
+                        placeholder="Ej. 4" min="1" required class="input-materia" />
+                </div>
+
+                <div class="input-group">
+                    <label for="dobleBloque">Permitir 2 horas seguidas el mismo día</label>
+                    <label class="check-item">
+                        <input id="dobleBloque" type="checkbox" [(ngModel)]="nuevaMateria.permitir_doble_bloque" name="permitir_doble_bloque" />
+                        <span>Sí, permitir doble bloque</span>
+                    </label>
+                </div>
+
+                <div class="input-group input-group-wide">
                     <label>Salones permitidos (1 o 2)</label>
                     <div class="check-list salones-list">
                         <label *ngFor="let salon of salones" class="check-item">
@@ -41,20 +55,7 @@
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label for="horasSemana">Horas/Semana</label>
-                    <input id="horasSemana" type="number" [(ngModel)]="nuevaMateria.horas_semana" name="horas_semana"
-                        placeholder="Ej. 4" min="1" required class="input-materia" />
-                </div>
-
-                <div class="input-group">
-                    <label class="check-item">
-                        <input type="checkbox" [(ngModel)]="nuevaMateria.permitir_doble_bloque" name="permitir_doble_bloque" />
-                        <span>Permitir 2 horas seguidas el mismo día</span>
-                    </label>
-                </div>
-
-                <div class="form-actions">
+                <div class="form-actions form-actions-centered">
                     <button type="submit" class="btn-guardar">
                         {{ editandoId ? 'Guardar Cambios' : 'Agregar Materia' }}
                     </button>
@@ -67,6 +68,27 @@
     </div>
 
     <div class="card-table">
+        <div class="table-filters">
+            <select [(ngModel)]="filtroGrado" name="filtroGradoMaterias" class="input-materia">
+                <option value="all">Grados: Todos</option>
+                <option value="1">1°</option>
+                <option value="2">2°</option>
+                <option value="3">3°</option>
+            </select>
+            <select [(ngModel)]="filtroDobleBloque" name="filtroDobleBloque" class="input-materia">
+                <option value="all">Clases seguidas: Todas</option>
+                <option value="si">Sí permite</option>
+                <option value="no">No permite</option>
+            </select>
+            <input
+                type="text"
+                [(ngModel)]="filtroMaterias"
+                name="filtroMaterias"
+                placeholder="Filtrar por nombre, grado o salón..."
+                class="input-materia"
+            />
+            <button type="button" class="btn-clear-filters" (click)="limpiarFiltros()">Borrar filtros</button>
+        </div>
         <table class="tabla-materias">
             <thead>
                 <tr>
@@ -80,7 +102,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let materia of materias; let i = index">
+                <tr *ngFor="let materia of materiasFiltradas; let i = index">
                     <td class="td-id">{{ i + 1 }}</td>
                     <td class="td-nombre">{{ materia.nombre }}</td>
                     <td>{{ materia.grado ? getGradoLabel(materia.grado) : 'Sin grado' }}</td>
@@ -102,7 +124,7 @@
                         </button>
                     </td>
                 </tr>
-                <tr *ngIf="materias.length === 0">
+                <tr *ngIf="materiasFiltradas.length === 0">
                     <td colspan="7" class="empty-state">
                         No hay materias registradas. ¡Agrega una nueva arriba!
                     </td>

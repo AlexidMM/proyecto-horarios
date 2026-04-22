@@ -39,6 +39,8 @@ interface Tutor {
 
 export class GruposComponent {
   grupos: Grupo[] = [];
+  filtroGrupos = '';
+  filtroGrado = 'all';
   grupoEditando: Grupo | null = null;
   nuevoGrupo: Grupo = { id: '', nombre: '', grado: 1, limite_alumnos: 35, data: {} };
   tutores: Tutor[] = [];
@@ -77,6 +79,23 @@ export class GruposComponent {
     if (!id) return '-';
     const tutor = this.tutores.find(t => t.id === id);
     return tutor ? tutor.fullName : '-';
+  }
+
+  get gruposFiltrados(): Grupo[] {
+    const term = this.filtroGrupos.trim().toLowerCase();
+    return this.grupos.filter((g) => {
+      const matchesSearch = !term || 
+      `${g.nombre} ${g.grado} ${g.limite_alumnos} ${g.alumnosActuales ?? 0}`
+        .toLowerCase()
+        .includes(term);
+      const matchesGrado = this.filtroGrado === 'all' || Number(g.grado) === Number(this.filtroGrado);
+      return matchesSearch && matchesGrado;
+    });
+  }
+
+  limpiarFiltros() {
+    this.filtroGrupos = '';
+    this.filtroGrado = 'all';
   }
 
 

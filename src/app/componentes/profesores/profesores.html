@@ -54,6 +54,10 @@
     </div>
 
     <div class="card-table">
+        <div class="table-filters">
+            <input type="text" [(ngModel)]="filtroProfesores" name="filtroProfesores" placeholder="Filtrar por nombre o materia..." class="input-profesor" />
+            <button type="button" class="btn-clear-filters" (click)="limpiarFiltros()">Borrar filtros</button>
+        </div>
         <table class="tabla-profesores">
             <thead>
                 <tr>
@@ -65,7 +69,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let profesor of profesores">
+                <tr *ngFor="let profesor of profesoresFiltrados">
                     <td class="td-nombre">{{ profesor.nombre }}</td>
                     <td>{{ profesor.apellidos }}</td>
                     <td>{{ profesor.hora_empezar || '--:--' }} - {{ profesor.hora_terminar || '--:--' }}</td>
@@ -95,7 +99,7 @@
                         </button>
                     </td>
                 </tr>
-                <tr *ngIf="profesores.length === 0">
+                <tr *ngIf="profesoresFiltrados.length === 0">
                     <td colspan="5" class="empty-state">
                         No hay profesores registrados. ¡Agrega uno nuevo arriba!
                     </td>

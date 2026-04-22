@@ -40,6 +40,10 @@
   </div>
 
   <div class="card-table">
+    <div class="table-filters">
+      <input id="filtroEdificios" [(ngModel)]="filtroEdificios" name="filtroEdificios" type="text" placeholder="Filtrar por nombre o descripción..." class="input-edificio" />
+      <button type="button" class="btn-clear-filters" (click)="limpiarFiltros()">Borrar filtros</button>
+    </div>
     <table class="tabla-edificios">
       <thead>
         <tr>
@@ -50,7 +54,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let edificio of edificios; let i = index">
+        <tr *ngFor="let edificio of edificiosFiltrados; let i = index">
           <td class="td-id">{{ i + 1 }}</td>
           <td class="td-nombre">{{ edificio.nombre }}</td>
           <td>{{ edificio.descripcion || '-' }}</td>
@@ -69,7 +73,7 @@
             </button>
           </td>
         </tr>
-        <tr *ngIf="edificios.length === 0">
+        <tr *ngIf="edificiosFiltrados.length === 0">
           <td colspan="4" class="empty-state">
             No hay edificios registrados. ¡Agrega uno nuevo arriba!
           </td>

@@ -19,6 +19,7 @@ interface Edificio {
 })
 export class EdificiosComponent {
   edificios: Edificio[] = [];
+  filtroEdificios = '';
   nuevo: Edificio = { id: '', nombre: '', descripcion: '' };
   editandoId: string | null = null;
   toastVisible = false;
@@ -42,6 +43,18 @@ export class EdificiosComponent {
     this.toastType = type;
     this.toastVisible = true;
     setTimeout(() => (this.toastVisible = false), 2600);
+  }
+
+  get edificiosFiltrados(): Edificio[] {
+    const term = this.filtroEdificios.trim().toLowerCase();
+    if (!term) return this.edificios;
+    return this.edificios.filter((e) =>
+      `${e.nombre} ${e.descripcion || ''}`.toLowerCase().includes(term),
+    );
+  }
+
+  limpiarFiltros() {
+    this.filtroEdificios = '';
   }
 
   async guardar() {

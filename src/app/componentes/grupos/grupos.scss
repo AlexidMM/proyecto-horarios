@@ -189,6 +189,25 @@ $danger-hover: #c62828;
 	overflow: hidden;
 }
 
+.table-filters {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid $border;
+  background: $secondary;
+  display: grid;
+  grid-template-columns: minmax(0, 220px) 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  border: 1px solid $border;
+  color: color.adjust($text, $lightness: 10%);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
 .tabla-grupos {
 	width: 100%;
 	border-collapse: collapse;

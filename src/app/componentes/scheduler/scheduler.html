@@ -165,11 +165,42 @@
             </div>
         </div>
         }
+
+        @if (fillEditor) {
+        <div class="move-editor-card fill-editor-card">
+            <h4>Rellenar hueco manualmente</h4>
+            <p>
+                Grupo <strong>{{ fillEditor.groupName }}</strong> · {{ bloquesLabel[fillEditor.hour] }} ·
+                {{ fillEditor.day }}
+            </p>
+            <div class="move-editor-grid">
+                <div class="input-group">
+                    <label for="fillSubject">Materia a asignar</label>
+                    <select id="fillSubject" [(ngModel)]="fillEditor.selectedSubject" name="fillSubject" class="input-filter">
+                        @for (item of fillEditor.options; track item.subject) {
+                        <option [value]="item.subject">
+                            {{ item.subject }}{{ item.missing > 0 ? ' · Faltan ' + item.missing : '' }}
+                        </option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="move-actions">
+                <button type="button" class="btn-cancel-move" (click)="closeFillEditor()" [disabled]="filling">Cancelar</button>
+                <button type="button" class="btn-apply-move" (click)="applyManualFill()" [disabled]="filling">
+                    {{ filling ? 'Guardando...' : 'Rellenar +' }}
+                </button>
+            </div>
+        </div>
+        }
     </div>
 
     @if (groupedSchedules.length || profesoresConHorarios.length) {
     <div class="results-section">
         <div class="view-toggles">
+            <button type="button" class="toggle-btn" (click)="exportarTodosLosPDFGrupos()">
+                <span>PDF de todos los grupos</span>
+            </button>
             <button type="button" class="toggle-btn" [class.active]="vistaHorarios === 'grupo'"
                 (click)="vistaHorarios = 'grupo'">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -237,6 +268,10 @@
                                             Mover
                                         </button>
                                     </div>
+                                    } @else {
+                                    <button class="btn-fill" type="button" (click)="openFillEditor(group.nombregrupo, dia, hora)">
+                                        Rellenar +
+                                    </button>
                                     }
                                 </td>
                                 }

@@ -16,6 +16,10 @@
     <button type="button" *ngIf="editandoId" (click)="cancelar()">Cancelar</button>
   </form>
 
+  <div class="table-filters">
+    <input [(ngModel)]="filtroUsers" name="filtroUsers" type="text" placeholder="Buscar usuarios..." />
+    <button type="button" (click)="limpiarFiltros()">Borrar filtros</button>
+  </div>
   <table>
     <thead>
       <tr>
@@ -27,7 +31,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users">
+      <tr *ngFor="let user of usersFiltrados">
         <td>{{ user.email }}</td>
         <td>{{ user.full_name || '-' }}</td>
         <td>{{ user.role || '-' }}</td>

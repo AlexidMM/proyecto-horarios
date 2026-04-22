@@ -22,6 +22,7 @@ interface MateriaCatalogo {
   id: string;
   nombre: string;
   grado?: number;
+  permitir_doble_bloque?: boolean;
 }
 
 interface HorarioClase {
@@ -48,6 +49,20 @@ interface MissingSubjectItem {
 interface MissingByGroup {
   group: string;
   items: string[];
+}
+
+interface FillOption {
+  subject: string;
+  missing: number;
+}
+
+interface FillEditorState {
+  groupName: string;
+  day: string;
+  hour: string;
+  start: string;
+  selectedSubject: string;
+  options: FillOption[];
 }
 
 @Component({
@@ -88,6 +103,8 @@ export class SchedulerComponent {
   profesoresConHorarios: Array<{ nombre: string, clases: any[] }> = [];
   moveEditor: MoveEditorState | null = null;
   moving = false;
+  fillEditor: FillEditorState | null = null;
+  filling = false;
   warningMissingSubjects: MissingSubjectItem[] = [];
   warningMissingByGroup: MissingByGroup[] = [];
 
@@ -166,32 +183,27 @@ export class SchedulerComponent {
   }
 
   getClase(data: any[], dia: string, hora: string): any {
-    // Busca la clase cuyo campo start coincide con el dÃ­a y la hora
-    return data.find(clase => {
-      if (typeof clase.start === 'string') {
-        return clase.start.startsWith(dia) && clase.start.substring(3, 5) === hora;
-      }
-      return false;
-    }) || null;
+    return data.find((clase) => this.classOccupiesSlot(clase, dia, hora)) || null;
   }
 
 
   getClaseProfesor(clases: any[], dia: string, hora: string): any {
-    return clases.find(clase => {
-      if (typeof clase.start === 'string') {
-        return clase.start.startsWith(dia) && clase.start.substring(3, 5) === hora;
-      }
-      return false;
-    }) || null;
+    return clases.find((clase) => this.classOccupiesSlot(clase, dia, hora)) || null;
   }
 
   getClasesProfesor(clases: any[], dia: string, hora: string): any[] {
-    return clases.filter((clase) => {
-      if (typeof clase.start === 'string') {
-        return clase.start.startsWith(dia) && clase.start.substring(3, 5) === hora;
-      }
+    return clases.filter((clase) => this.classOccupiesSlot(clase, dia, hora));
+  }
+
+  private classOccupiesSlot(clase: any, dia: string, hora: string): boolean {
+    if (typeof clase?.start !== 'string' || !clase.start.startsWith(dia)) {
       return false;
-    });
+    }
+
+    const startHour = Number(clase.start.substring(3, 5));
+    const targetHour = Number(hora);
+    const duration = Math.max(1, Number(clase.len ?? 1));
+    return targetHour >= startHour && targetHour < startHour + duration;
   }
 
   ngOnInit() {
@@ -244,6 +256,7 @@ export class SchedulerComponent {
             id: materia.id,
             nombre: materia.nombre,
             grado: materia.grado,
+            permitir_doble_bloque: Boolean(materia.permitir_doble_bloque),
           }))
         : [];
     } catch (err) {
@@ -305,6 +318,90 @@ export class SchedulerComponent {
 
   closeMoveEditor() {
     this.moveEditor = null;
+  }
+
+  private getGroupGrade(groupName: string): number | null {
+    const group = this.gruposDisponibles.find((g) => g.nombre === groupName);
+    return group?.grado ?? null;
+  }
+
+  private buildFillOptions(groupName: string): FillOption[] {
+    const missing = this.warningMissingSubjects
+      .filter((m) => m.group === groupName)
+      .map((m) => ({ subject: m.subject, missing: m.missing }))
+      .sort((a, b) => b.missing - a.missing);
+
+    const grade = this.getGroupGrade(groupName);
+    const allSubjects = this.materiasDisponibles
+      .filter((m) => (grade ? m.grado === grade : true))
+      .map((m) => ({ subject: m.nombre, missing: 0 }));
+
+    const merged = new Map<string, FillOption>();
+    [...missing, ...allSubjects].forEach((item) => {
+      if (!merged.has(item.subject)) {
+        merged.set(item.subject, item);
+      }
+    });
+    return Array.from(merged.values());
+  }
+
+  openFillEditor(groupName: string, day: string, hour: string) {
+    const options = this.buildFillOptions(groupName);
+    if (options.length === 0) {
+      this.isSuccess = false;
+      this.message = 'No hay materias disponibles para rellenar este hueco.';
+      return;
+    }
+
+    this.fillEditor = {
+      groupName,
+      day,
+      hour,
+      start: `${day}${hour}`,
+      selectedSubject: options[0].subject,
+      options,
+    };
+  }
+
+  closeFillEditor() {
+    this.fillEditor = null;
+  }
+
+  async applyManualFill() {
+    if (!this.fillEditor || !this.fillEditor.selectedSubject) return;
+
+    this.filling = true;
+    try {
+      const res = await fetch('http://localhost:3000/scheduler/manual-add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          groupName: this.fillEditor.groupName,
+          start: this.fillEditor.start,
+          subject: this.fillEditor.selectedSubject,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        this.isSuccess = false;
+        this.message = data?.message || data?.error || 'No se pudo rellenar el hueco';
+        return;
+      }
+
+      this.isSuccess = true;
+      this.message = data?.result?.message || 'Hueco rellenado correctamente.';
+      this.closeFillEditor();
+      await this.cargarHorariosCreados();
+    } catch {
+      this.isSuccess = false;
+      this.message = 'Error al rellenar el hueco.';
+    } finally {
+      this.filling = false;
+    }
   }
 
   async applyManualMove() {
@@ -394,14 +491,25 @@ export class SchedulerComponent {
               }))
             : [],
         );
-        const profesoresMap: { [nombre: string]: any[] } = {};
+        const profesoresMap: { [nombre: string]: { displayName: string; clases: any[] } } = {};
         for (const clase of clasesTodas) {
-          if (clase.prof) {
-            if (!profesoresMap[clase.prof]) profesoresMap[clase.prof] = [];
-            profesoresMap[clase.prof].push(clase);
+          const rawName = typeof clase.prof === 'string' ? clase.prof : '';
+          const displayName = rawName.trim().replace(/\s+/g, ' ');
+          if (displayName) {
+            const key = this.normalizeKey(displayName);
+            if (!profesoresMap[key]) {
+              profesoresMap[key] = { displayName, clases: [] };
+            }
+            profesoresMap[key].clases.push({
+              ...clase,
+              prof: displayName,
+            });
           }
         }
-        this.profesoresConHorarios = Object.entries(profesoresMap).map(([nombre, clases]) => ({ nombre, clases }));
+        this.profesoresConHorarios = Object.values(profesoresMap).map((entry) => ({
+          nombre: entry.displayName,
+          clases: entry.clases,
+        }));
       } else {
         this.groupedSchedules = [];
         this.profesoresConHorarios = [];
@@ -680,6 +788,12 @@ export class SchedulerComponent {
     }
 
     doc.save(`horario_profesor_${prof.nombre}.pdf`);
+  }
+
+  exportarTodosLosPDFGrupos() {
+    for (const group of this.groupedSchedules) {
+      this.exportarPDF(group);
+    }
   }
 }
 
